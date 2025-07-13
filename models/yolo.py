@@ -39,6 +39,7 @@ from models.common import (
     Concat,
     Contract,
     Conv,
+    Conv_ECA,
     CrossConv,
     DetectMultiBackend,
     DWConv,
@@ -48,7 +49,6 @@ from models.common import (
     GhostBottleneck,
     GhostConv,
     Proto,
-    Conv_ECA,
 )
 from models.experimental import MixConv2d
 from utils.autoanchor import check_anchor_order
@@ -403,9 +403,26 @@ def parse_model(d, ch):
 
         n = n_ = max(round(n * gd), 1) if n > 1 else n  # depth gain
         if m in {
-        Conv, Conv_ECA, GhostConv, Bottleneck, GhostBottleneck, SPP, SPPF, DWConv, MixConv2d, Focus, CrossConv,
-        BottleneckCSP, C3, C3TR, C3SPP, C3Ghost, nn.ConvTranspose2d, DWConvTranspose2d, C3x}:
-
+            Conv,
+            Conv_ECA,
+            GhostConv,
+            Bottleneck,
+            GhostBottleneck,
+            SPP,
+            SPPF,
+            DWConv,
+            MixConv2d,
+            Focus,
+            CrossConv,
+            BottleneckCSP,
+            C3,
+            C3TR,
+            C3SPP,
+            C3Ghost,
+            nn.ConvTranspose2d,
+            DWConvTranspose2d,
+            C3x,
+        }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, ch_mul)

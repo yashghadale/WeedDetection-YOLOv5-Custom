@@ -1122,9 +1122,10 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
 
+
 class ECA(nn.Module):
     def __init__(self, channels, k_size=3):
-        super(ECA, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
         self.sigmoid = nn.Sigmoid()
@@ -1135,10 +1136,11 @@ class ECA(nn.Module):
         y = self.sigmoid(y).transpose(-1, -2).unsqueeze(-1)
         return x * y.expand_as(x)
 
+
 # Conv + ECA wrapper
 class Conv_ECA(nn.Module):
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, eca_k=3, *args):
-        super(Conv_ECA, self).__init__()
+        super().__init__()
         if p is None:
             p = k // 2
         if g is None:
