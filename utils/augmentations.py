@@ -27,10 +27,8 @@ class Albumentations:
         try:
             import albumentations as A
 
-            check_version(A.__version__, "1.0.3", hard=True)  # version requirement
-
             T = [
-                A.RandomResizedCrop(height=size, width=size, scale=(0.8, 1.0), ratio=(0.9, 1.11), p=0.0),
+                A.RandomResizedCrop(size=(1280, 1280), scale=(0.8, 1.0), ratio=(0.75, 1.333), p=1.0),
                 A.Blur(p=0.01),
                 A.MedianBlur(p=0.01),
                 A.ToGray(p=0.01),
@@ -38,7 +36,9 @@ class Albumentations:
                 A.RandomBrightnessContrast(p=0.0),
                 A.RandomGamma(p=0.0),
                 A.ImageCompression(quality_lower=75, p=0.0),
-            ]  # transforms
+            ]
+
+
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
             LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in T if x.p))
@@ -318,9 +318,9 @@ def box_candidates(box1, box2, wh_thr=2, ar_thr=100, area_thr=0.1, eps=1e-16):
 
 def classify_albumentations(
     augment=True,
-    size=224,
+    size=1280,  # ⚡ Force to training image size
     scale=(0.08, 1.0),
-    ratio=(0.75, 1.0 / 0.75),  # 0.75, 1.33
+    ratio=(0.75, 1.0 / 0.75),
     hflip=0.5,
     vflip=0.0,
     jitter=0.4,
