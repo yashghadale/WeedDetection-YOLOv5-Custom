@@ -201,6 +201,20 @@ def train(hyp, opt, device, callbacks):
     plots = not evolve and not opt.noplots  # create plots
     cuda = device.type != "cpu"
     init_seeds(opt.seed + 1 + RANK, deterministic=True)
+    import os, torch
+    from torch.backends import cudnn
+
+    try:
+        torch.use_deterministic_algorithms(False)
+    except Exception:
+        pass
+
+    cudnn.benchmark = True
+
+    for k in ("CUBLAS_WORKSPACE_CONFIG", "PYTORCH_CUDA_ALLOC_CONF"):
+        if k in os.environ:
+            os.environ.pop(k)
+    # ---- end add ----
     with torch_distributed_zero_first(LOCAL_RANK):
         data_dict = data_dict or check_dataset(data)  # check if None
     train_path, val_path = data_dict["train"], data_dict["val"]
