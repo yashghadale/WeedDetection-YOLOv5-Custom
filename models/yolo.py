@@ -49,6 +49,7 @@ from models.common import (
     GhostConv,
     Proto,
     Conv_ECA,
+    CBAM,
 )
 from models.experimental import MixConv2d
 from utils.autoanchor import check_anchor_order
