@@ -19,6 +19,7 @@ import pandas as pd
 import requests
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from PIL import Image
 from torch.cuda import amp
 
@@ -338,6 +339,44 @@ class SPPF(nn.Module):
             y1 = self.m(x)
             y2 = self.m(y1)
             return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
+            
+class SpatialAttention(nn.Module):
+    def __init__(self, kernel_size=7):
+        super().__init__()
+        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        padding = 3 if kernel_size == 7 else 1
+        self.conv = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        avg_out = torch.mean(x, dim=1, keepdim=True)
+        max_out, _ = torch.max(x, dim=1, keepdim=True)
+        x = torch.cat([avg_out, max_out], dim=1)
+        x = self.conv(x)
+        return self.sigmoid(x)
+
+# --- CBAM (Channel + Spatial) ---
+class CBAM(nn.Module):
+    def __init__(self, channels=None, reduction=16, **kwargs):
+        super().__init__()
+        self.channels = channels
+        self.mlp = None  # Will init later
+        self.spatial = SpatialAttention()
+
+    def forward(self, x):
+        if self.mlp is None:  # lazy init
+            c = x.size(1)
+            self.mlp = nn.Sequential(
+                nn.Conv2d(c, c // 16, 1, bias=False),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(c // 16, c, 1, bias=False)
+            ).to(x.device)
+        avg = F.adaptive_avg_pool2d(x, 1)
+        mx = F.adaptive_max_pool2d(x, 1)
+        ch = torch.sigmoid(self.mlp(avg) + self.mlp(mx))
+        x = x * ch
+        x = x * self.spatial(x)
+        return x
 
 
 class Focus(nn.Module):
@@ -1150,3 +1189,19 @@ class Conv_ECA(nn.Module):
 
     def forward(self, x):
         return self.eca(self.act(self.bn(self.conv(x))))
+
+# --- SE (Squeeze-and-Excitation) ---
+class SE(nn.Module):
+    def __init__(self, c, r=16):
+        super().__init__()
+        self.avg = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Conv2d(c, max(c // r, 1), 1, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(max(c // r, 1), c, 1, bias=False),
+            nn.Sigmoid(),
+        )
+    def forward(self, x):
+        w = self.fc(self.avg(x))
+        return x * w
+
