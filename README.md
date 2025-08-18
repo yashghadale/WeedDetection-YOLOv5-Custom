@@ -5,10 +5,10 @@ This project improves YOLOv5s for **Weed Detection in Agricultural Fields** usin
 - **Conv_ECA** — Efficient Channel Attention inside convolution
 - **BottleneckCSP** — Improved feature extraction
 - **GhostConv** — Lightweight computation for faster inference
-  
-##  Project Structure
 
-```text
+## Project Structure
+
+````text
 WeedDetection-YOLOv5-Custom/
 ├── models/
 │   ├── common.py                # Custom layers (Conv_ECA, BottleneckCSP, GhostConv)
@@ -50,3 +50,4 @@ WeedDetection-YOLOv5-Custom/
 
 
 
+````

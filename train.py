@@ -201,7 +201,9 @@ def train(hyp, opt, device, callbacks):
     plots = not evolve and not opt.noplots  # create plots
     cuda = device.type != "cpu"
     init_seeds(opt.seed + 1 + RANK, deterministic=True)
-    import os, torch
+    import os
+
+    import torch
     from torch.backends import cudnn
 
     try:

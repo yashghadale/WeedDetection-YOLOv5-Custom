@@ -339,11 +339,12 @@ class SPPF(nn.Module):
             y1 = self.m(x)
             y2 = self.m(y1)
             return self.cv2(torch.cat((x, y1, y2, self.m(y2)), 1))
-            
+
+
 class SpatialAttention(nn.Module):
     def __init__(self, kernel_size=7):
         super().__init__()
-        assert kernel_size in (3, 7), 'kernel size must be 3 or 7'
+        assert kernel_size in (3, 7), "kernel size must be 3 or 7"
         padding = 3 if kernel_size == 7 else 1
         self.conv = nn.Conv2d(2, 1, kernel_size, padding=padding, bias=False)
         self.sigmoid = nn.Sigmoid()
@@ -354,6 +355,7 @@ class SpatialAttention(nn.Module):
         x = torch.cat([avg_out, max_out], dim=1)
         x = self.conv(x)
         return self.sigmoid(x)
+
 
 # --- CBAM (Channel + Spatial) ---
 class CBAM(nn.Module):
@@ -367,9 +369,7 @@ class CBAM(nn.Module):
         if self.mlp is None:  # lazy init
             c = x.size(1)
             self.mlp = nn.Sequential(
-                nn.Conv2d(c, c // 16, 1, bias=False),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(c // 16, c, 1, bias=False)
+                nn.Conv2d(c, c // 16, 1, bias=False), nn.ReLU(inplace=True), nn.Conv2d(c // 16, c, 1, bias=False)
             ).to(x.device)
         avg = F.adaptive_avg_pool2d(x, 1)
         mx = F.adaptive_max_pool2d(x, 1)
@@ -1161,9 +1161,10 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
 
+
 class ECA(nn.Module):
     def __init__(self, channels, k_size=3):
-        super(ECA, self).__init__()
+        super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
         self.conv = nn.Conv1d(1, 1, kernel_size=k_size, padding=(k_size - 1) // 2, bias=False)
         self.sigmoid = nn.Sigmoid()
@@ -1174,10 +1175,11 @@ class ECA(nn.Module):
         y = self.sigmoid(y).transpose(-1, -2).unsqueeze(-1)
         return x * y.expand_as(x)
 
+
 # Conv + ECA wrapper
 class Conv_ECA(nn.Module):
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True, eca_k=3, *args):
-        super(Conv_ECA, self).__init__()
+        super().__init__()
         if p is None:
             p = k // 2
         if g is None:
@@ -1190,6 +1192,7 @@ class Conv_ECA(nn.Module):
     def forward(self, x):
         return self.eca(self.act(self.bn(self.conv(x))))
 
+
 # --- SE (Squeeze-and-Excitation) ---
 class SE(nn.Module):
     def __init__(self, c, r=16):
@@ -1201,7 +1204,7 @@ class SE(nn.Module):
             nn.Conv2d(max(c // r, 1), c, 1, bias=False),
             nn.Sigmoid(),
         )
+
     def forward(self, x):
         w = self.fc(self.avg(x))
         return x * w
-

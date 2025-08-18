@@ -28,29 +28,24 @@ class Albumentations:
             import albumentations as A
 
             T = [
-    # ---------------- Spatial Augmentations ----------------
+                # ---------------- Spatial Augmentations ----------------
                 A.RandomResizedCrop(size=(1280, 1280), scale=(0.8, 1.0), ratio=(0.75, 1.33), p=1.0),
                 A.HorizontalFlip(p=0.5),
                 A.VerticalFlip(p=0.2),
                 A.RandomRotate90(p=0.3),
-
-    # ---------------- Color & Lighting ----------------
+                # ---------------- Color & Lighting ----------------
                 A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
                 A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
                 A.RandomGamma(gamma_limit=(80, 120), p=0.3),
                 A.CLAHE(clip_limit=4, tile_grid_size=(8, 8), p=0.3),
-
-    # ---------------- Noise & Distortions ----------------
+                # ---------------- Noise & Distortions ----------------
                 A.MotionBlur(p=0.1),
                 A.MedianBlur(blur_limit=3, p=0.1),
                 A.GaussNoise(var_limit=(10.0, 50.0), p=0.2),
                 A.ImageCompression(quality_lower=50, quality_upper=100, p=0.3),
-
-    # ---------------- Final Resize ----------------
+                # ---------------- Final Resize ----------------
                 A.Resize(height=size, width=size, p=1.0),  # Resize to YOLOv5 input
             ]
-
-
 
             self.transform = A.Compose(T, bbox_params=A.BboxParams(format="yolo", label_fields=["class_labels"]))
 
