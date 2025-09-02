@@ -28,20 +28,34 @@ class Albumentations:
             import albumentations as A
 
             T = [
-    A.Resize(width=1280, height=1280, interpolation=cv2.INTER_CUBIC, p=1.0),  # upsample
-    A.CLAHE(clip_limit=4, tile_grid_size=(8, 8), p=0.5),
+    # --- Spatial ---
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.2),
-    A.RandomRotate90(p=0.3),
-    A.RandomBrightnessContrast(brightness_limit=0.3, contrast_limit=0.3, p=0.5),
-    A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=30, val_shift_limit=20, p=0.5),
+    A.ShiftScaleRotate(
+        shift_limit=0.05,    # max 5% shift
+        scale_limit=0.1,     # ±10% zoom
+        rotate_limit=2,      # ±2° rotation to preserve tiny weeds
+        border_mode=cv2.BORDER_REFLECT_101,
+        p=0.5
+    ),
+
+    # --- Color & Lighting ---
+    A.CLAHE(clip_limit=4, tile_grid_size=(8, 8), p=0.5),
+    A.RandomBrightnessContrast(brightness_limit=0.2, contrast_limit=0.2, p=0.5),
+    A.HueSaturationValue(hue_shift_limit=15, sat_shift_limit=20, val_shift_limit=15, p=0.5),
     A.RandomGamma(gamma_limit=(80, 120), p=0.3),
-    A.MotionBlur(p=0.1),
-    A.MedianBlur(blur_limit=3, p=0.1),
-    A.GaussNoise(var_limit=(10.0, 50.0), p=0.2),
+
+    # --- Noise & Blur ---
+    A.MotionBlur(blur_limit=(3, 5), p=0.1),
+    A.GaussNoise(var_limit=(10.0, 30.0), p=0.2),
+
+    # --- UAV compression simulation ---
     A.ImageCompression(quality_lower=70, quality_upper=100, p=0.3),
-    A.Resize(height=size, width=size, p=1.0),  # final YOLO size (usually 640)
+
+    # --- Final resize to YOLO input ---
+    A.Resize(height=size, width=size, p=1.0),
 ]
+
 
 
 
